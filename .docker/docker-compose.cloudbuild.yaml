@@ -1,0 +1,62 @@
+version: "3.5"
+
+services:
+    app:
+        build: ./app
+        container_name: app
+        volumes:
+            - ./../:/var/www
+        networks:
+            - app-network
+        depends_on:
+            - db
+            - redis
+
+    nginx:
+        build: ./nginx
+        container_name: nginx
+        restart: always
+        ports:
+            - "8000:80"
+        volumes:
+            - ./../:/var/www
+        networks:
+            - app-network
+        tty: true
+        depends_on:
+            - app
+
+    redis:
+        image: redis:alpine
+        container_name: redis
+        ports:
+            - "6379:6379"
+        command: ["redis-server", "--appendonly", "yes"]
+        volumes:
+            - /tmp/redis_data/:/var/lib/redis/
+
+        networks:
+            - app-network
+
+    db:
+        image: mysql:5.7
+        command: --innodb-use-native-aio=0
+        container_name: db
+        tty: true
+        ports:
+            - "3307:3306"
+        volumes:
+            - /tmp/mysql/dbdata:/var/lib/mysql
+
+        environment:
+            - MYSQL_DATABASE=system
+            - MYSQL_ROOT_USER=root
+            - MYSQL_ROOT_PASSWORD=1234
+            - MYSQL_PORT=3306
+        networks:
+            - app-network
+
+networks:
+    app-network:
+        name: "app-network"
+        driver: "bridge"
