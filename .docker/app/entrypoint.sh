@@ -6,6 +6,6 @@ chmod -R 777 storage
 # chmod -R 777 .env
 composer install
 php artisan key:generate
-php artisan migrate
+php artisan migrate --seed
 
 php-fpm
